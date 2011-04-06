@@ -3,19 +3,43 @@ package simulating;
 public class test {
 	public double T;
 	public double decrement;
-	public test(double T,double decremnet)
+	public test(double T,double decrement)
 	{
 		this.T=T;
-		this.decrement=decremnet;
+		this.decrement=decrement;
+	}
+	public int  process()
+	{
 		//N初始化为覆盖对
-		int N=DataCenter.coveringArrayNum;
+		int start=DataCenter.coveringArrayNum;
+		int end = 0;
+		boolean flag=false;
+	  //二分法来找到最小的N
+		while(start>end||!flag)
+		{
+			if(start<=end)//这一条可以找到合适的start和end
+			{
+				end=start;
+				start*=2;
+			}
+			int middle=(start+end)/2;
+			AnnelProcess al=new AnnelProcess(middle, T, decrement);
+			al.startAnneling();
+			if(al.isOk())
+			{
+				start=middle-1;
+				flag=true;
+			}
+			else
+				end=middle+1;
+		}
+		return start;
 	}
 	static public void main(String[] args) {
-		int param[] = { 10, 10, 10 ,10,10,10};
+		int param[] = { 10, 10, 10,10,10,10 };
 		DataCenter.init(param, 3);
 		System.out.println(DataCenter.coveringArrayNum);
-		AnnelProcess al = new AnnelProcess(2000, 1, 0.9998);
-		al.startAnneling();
-		System.out.println("reslut: " + al.isOk());
+		test t=new test(1,0.9998);
+		System.out.println("reslut: " + t.process());
 	}
 }
