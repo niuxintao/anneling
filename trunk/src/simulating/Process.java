@@ -1,19 +1,24 @@
 package simulating;
 
-public class test {
+import java.util.Date;
+
+public class Process {
 	public double T;
 	public double decrement;
-	public test(double T,double decrement)
+	public long time;
+	public int[][] rsTable;
+	public Process(double T,double decrement)
 	{
 		this.T=T;
 		this.decrement=decrement;
 	}
-	public int  process()
+	public void  process()
 	{
 		//N初始化为覆盖对
 		int start=DataCenter.coveringArrayNum;
 		int end = 0;
 		boolean flag=false;
+		long starttime=new Date().getTime();
 	  //二分法来找到最小的N
 		while(start>end||!flag)
 		{
@@ -28,18 +33,22 @@ public class test {
 			if(al.isOk())
 			{
 				start=middle-1;
+				rsTable=al.table;
 				flag=true;
 			}
 			else
 				end=middle+1;
 		}
-		return start;
+		long endtime=new Date().getTime();
+		time=endtime-starttime;
 	}
 	static public void main(String[] args) {
-		int param[] = { 10, 10, 10,10,10,10 };
+		int param[] = { 10, 10, 10, 10, 10, 10, 10, 10, 10,10 };
 		DataCenter.init(param, 3);
 		System.out.println(DataCenter.coveringArrayNum);
-		test t=new test(1,0.9998);
-		System.out.println("reslut: " + t.process());
+		Process t=new Process(2,0.9998);
+		t.process();
+		System.out.println("arrayLength: " + t.rsTable.length);
+		System.out.println("time: "+t.time+ " ms");
 	}
 }
