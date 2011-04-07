@@ -1,5 +1,6 @@
 package driver;
 
+import java.io.IOException;
 import java.util.StringTokenizer;
 
 import org.apache.hadoop.conf.Configured;
@@ -26,25 +27,37 @@ public class Traggle extends Configured implements Tool {
 	static private final Path TMP_DIR = new Path("myAnnelDir");
 
 	public static class Map extends
-			Mapper<LongWritable, Text, Text, DoubleWritable> {
+			Mapper<LongWritable, Text, Text, LongWritable> {
 
 		protected void map(
 				LongWritable key,
 				Text value,
-				org.apache.hadoop.mapreduce.Mapper<LongWritable, LongWritable, Text, DoubleWritable>.Context context)
+				org.apache.hadoop.mapreduce.Mapper<LongWritable, Text, Text, LongWritable>.Context context)
 				throws java.io.IOException, InterruptedException {
 		      String line = value.toString();
 		      StringTokenizer itr = new StringTokenizer(line);
 		      double T=Double.parseDouble(itr.nextToken());
 		      double decrement=Double.parseDouble(itr.nextToken());
 		      Process t=new Process(T,decrement);
-		      t.process();		      
+		      t.process();
+		      Text keyTime=new Text("time"+value);
+		      LongWritable valueTime=new LongWritable(t.time);
+		      context.write(keyTime, valueTime);
+		      Text keyLength=new Text("length"+value);
+		      LongWritable valueLength=new  LongWritable(t.rsTable.length);
+		      context.write(keyLength, valueLength);		      
 		}
 	}
 
 	public static class Reduce extends
-			Reducer<Text, DoubleWritable, Text, DoubleWritable> {
-
+			Reducer<Text, LongWritable, Text, LongWritable> {
+		public void reduce(Text key, Iterable<DoubleWritable> values,
+				Reducer<Text, DoubleWritable, Text, DoubleWritable>.Context context)
+				throws IOException, InterruptedException {
+			for (DoubleWritable val : values) {
+				context.write(new Text(" "), val);
+			}
+		}
 	}
 
 	@Override
@@ -57,9 +70,9 @@ public class Traggle extends Configured implements Tool {
 		job.setReducerClass(Reduce.class);
 
 		job.setMapOutputKeyClass(Text.class);
-		job.setMapOutputValueClass(DoubleWritable.class);
+		job.setMapOutputValueClass(LongWritable.class);
 		job.setOutputKeyClass(Text.class);
-		job.setOutputValueClass(DoubleWritable.class);
+		job.setOutputValueClass(LongWritable.class);
 		job.setInputFormatClass(TextInputFormat.class);
 		job.setOutputFormatClass(TextOutputFormat.class);
 
