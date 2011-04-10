@@ -51,7 +51,7 @@ public class Traggle extends Configured implements Tool {
 		protected void map(
 				LongWritable key,
 				LongWritable value,
-				org.apache.hadoop.mapreduce.Mapper<LongWritable, LongWritable, Text, Text>.Context context)
+				Context context)
 				throws java.io.IOException, InterruptedException {
 			String line = context.getConfiguration().get("paramAnnel")
 					.toString();
@@ -76,8 +76,7 @@ public class Traggle extends Configured implements Tool {
 	}
 
 	public static class Reduce extends Reducer<Text, Text, Text, Text> {
-		public void reduce(Text key, Iterable<Text> values,
-				Reducer<Text, Text, Text, Text>.Context context)
+		public void reduce(Text key, Iterable<Text> values,Context context)
 				throws IOException, InterruptedException {
 			context.write(new Text("100 times" + key), new Text());
 			if (key.equals(new Text("table"))) {
@@ -100,9 +99,9 @@ public class Traggle extends Configured implements Tool {
 		job.setMapperClass(Map.class);
 		job.setReducerClass(Reduce.class);
 		job.setMapOutputKeyClass(Text.class);
-		job.setMapOutputValueClass(LongWritable.class);
+		job.setMapOutputValueClass(Text.class);
 		job.setOutputKeyClass(Text.class);
-		job.setOutputValueClass(LongWritable.class);
+		job.setOutputValueClass(Text.class);
 		job.setInputFormatClass(SequenceFileInputFormat.class);
 		job.setOutputFormatClass(TextOutputFormat.class);
 		job.setNumReduceTasks(tasks);
@@ -140,11 +139,11 @@ public class Traggle extends Configured implements Tool {
 				Configuration conf = new Configuration();
 				conf.setInt("step", i);
 				conf.set("paramAnnel", temperture[i] + " " + decrease[j]);
-				Job job = new Job(conf, "myWork" + i);
+				Job job = new Job(conf, "myWork" + i+"_"+j);
 				configMyWork(job);
 				FileInputFormat.setInputPaths(job, new Path(TMP_DIR, args[0]));
 				FileOutputFormat.setOutputPath(job, new Path(TMP_DIR, args[1]
-						+ "" + i));
+						+ "" + i+"_"+j));
 				initInput(job);
 				job.waitForCompletion(true);
 			}
