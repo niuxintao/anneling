@@ -30,8 +30,8 @@ import simulating.Process;
  * */
 public class Traggle extends Configured implements Tool {
 	private int tasks = 1;
-	static public int numMaps = 50;
-	static public final int turns = 50;
+	static public int numMaps = 2;
+	static public final int turns = 2;
 	static public double[] temperture = new double[turns];
 	static public double[] decrease = new double[turns];
 	static private Random randomGenerator = new Random(); // Ëæ»úÉú³ÉÆ÷
@@ -46,12 +46,12 @@ public class Traggle extends Configured implements Tool {
 	}
 
 	public static class Map extends
-			Mapper<LongWritable, LongWritable, Text, LongWritable> {
+			Mapper<LongWritable, LongWritable, Text, Text> {
 
 		protected void map(
 				LongWritable key,
 				LongWritable value,
-				org.apache.hadoop.mapreduce.Mapper<LongWritable, LongWritable, Text, LongWritable>.Context context)
+				org.apache.hadoop.mapreduce.Mapper<LongWritable, LongWritable, Text, Text>.Context context)
 				throws java.io.IOException, InterruptedException {
 			String line = context.getConfiguration().get("paramAnnel")
 					.toString();
@@ -60,26 +60,39 @@ public class Traggle extends Configured implements Tool {
 			double decrement = Double.parseDouble(itr.nextToken());
 			Process t = new Process(T, decrement);
 			t.process();
-			context.write(new Text("time"), new LongWritable(t.time));
-			context.write(new Text("length"),
-					new LongWritable(t.rsTable.length));
+			context.write(new Text("time"), new Text(t.time + ""));
+			context.write(new Text("length"), new Text(t.rsTable.length + ""));
+			String RTable=new String();
+			for(int i=0;i<t.rsTable.length;i++)
+			{
+				for(int j=0;j<t.rsTable[i].length;j++)
+				{
+					RTable+=t.rsTable[i][j]+"\t";
+				}
+				RTable+="\r\n";
+			}
+			context.write(new Text("table"), new Text(RTable));
 		}
 	}
 
-	public static class Reduce extends
-			Reducer<Text, LongWritable, Text, LongWritable> {
-		public void reduce(Text key, Iterable<LongWritable> values,
-				Reducer<Text, LongWritable, Text, LongWritable>.Context context)
+	public static class Reduce extends Reducer<Text, Text, Text, Text> {
+		public void reduce(Text key, Iterable<Text> values,
+				Reducer<Text, Text, Text, Text>.Context context)
 				throws IOException, InterruptedException {
-			context.write(new Text("100 times" + key), new LongWritable());
-			long sum = 0;
-			for (LongWritable val : values) {
-				sum += val.get();
-				context.write(new Text(" "), val);
+			context.write(new Text("100 times" + key), new Text());
+			if (key.equals(new Text("table"))) {
+				for (Text val : values) {
+					context.write(new Text(" "), val);
+				}
+			} else {
+				long sum = 0;
+				for (Text val : values) {
+					sum += Integer.parseInt(val.toString());
+					context.write(new Text(" "), val);
+				}
+				sum /= numMaps;
+				context.write(new Text(key + " avg:"), new Text(sum + ""));
 			}
-			sum /= numMaps;
-			LongWritable rs = new LongWritable(sum);
-			context.write(new Text(key + " avg:"), rs);
 		}
 	}
 
