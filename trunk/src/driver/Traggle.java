@@ -1,6 +1,7 @@
 package driver;
 
 import java.io.IOException;
+import java.util.Random;
 import java.util.StringTokenizer;
 
 import org.apache.hadoop.conf.Configuration;
@@ -29,8 +30,20 @@ import simulating.Process;
  * */
 public class Traggle extends Configured implements Tool {
 	private int tasks = 1;
-	static public int numMaps = 10;
+	static public int numMaps = 50;
+	static public final int turns = 50;
+	static public double[] temperture = new double[turns];
+	static public double[] decrease = new double[turns];
+	static private Random randomGenerator = new Random(); // Ëæ»úÉú³ÉÆ÷
 	static private final Path TMP_DIR = new Path("myAnnelDir");
+
+	private static void initParameter() {
+		for (int i = 0; i < turns; i++) {
+			temperture[i] = DataCenter.coveringArrayNum
+					* randomGenerator.nextDouble();
+			decrease[i] = randomGenerator.nextDouble();
+		}
+	}
 
 	public static class Map extends
 			Mapper<LongWritable, LongWritable, Text, LongWritable> {
@@ -58,7 +71,7 @@ public class Traggle extends Configured implements Tool {
 		public void reduce(Text key, Iterable<LongWritable> values,
 				Reducer<Text, LongWritable, Text, LongWritable>.Context context)
 				throws IOException, InterruptedException {
-			context.write(new Text("100 times"+key), new LongWritable());
+			context.write(new Text("100 times" + key), new LongWritable());
 			long sum = 0;
 			for (LongWritable val : values) {
 				sum += val.get();
@@ -66,7 +79,7 @@ public class Traggle extends Configured implements Tool {
 			}
 			sum /= numMaps;
 			LongWritable rs = new LongWritable(sum);
-			context.write(new Text(key+" avg:"), rs);
+			context.write(new Text(key + " avg:"), rs);
 		}
 	}
 
@@ -109,23 +122,27 @@ public class Traggle extends Configured implements Tool {
 	@Override
 	public int run(String[] args) throws Exception {
 		// TODO Auto-generated method stub
-		for (int i = 1; i <= 10; i++) {
-			Configuration conf = new Configuration();
-			conf.setInt("step", i);
-			conf.set("paramAnnel", 2 + " " + 0.99998);
-			Job job = new Job(conf, "myWork" + i);
-			configMyWork(job);
-			FileInputFormat.setInputPaths(job, new Path(TMP_DIR, args[0]));
-			FileOutputFormat.setOutputPath(job, new Path(TMP_DIR, args[1] + ""
-					+ i));
-			initInput(job);
-			job.waitForCompletion(true);
+		for (int i = 0; i < turns; i++) {
+			for (int j = 0; j < turns; j++) {
+				Configuration conf = new Configuration();
+				conf.setInt("step", i);
+				conf.set("paramAnnel", temperture[i] + " " + decrease[j]);
+				Job job = new Job(conf, "myWork" + i);
+				configMyWork(job);
+				FileInputFormat.setInputPaths(job, new Path(TMP_DIR, args[0]));
+				FileOutputFormat.setOutputPath(job, new Path(TMP_DIR, args[1]
+						+ "" + i));
+				initInput(job);
+				job.waitForCompletion(true);
+			}
 		}
 		return 0;
 	}
+
 	public static void main(String[] args) throws Exception {
-		int param[] = { 5,5,5,5 };
+		int param[] = { 5, 5, 5, 5 };
 		DataCenter.init(param, 2);
+		initParameter();
 		args = new String[] { "test-in", "test-out" };
 		System.exit(ToolRunner.run(null, new Traggle(), args));
 	}
