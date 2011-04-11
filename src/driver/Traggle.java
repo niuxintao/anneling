@@ -30,8 +30,8 @@ import simulating.Process;
  * */
 public class Traggle extends Configured implements Tool {
 	private int tasks = 1;
-	static public int numMaps = 2;
-	static public final int turns = 2;
+	static public int numMaps = 5;
+	static public final int turns = 5;
 	static public double[] temperture = new double[turns];
 	static public double[] decrease = new double[turns];
 	static private Random randomGenerator = new Random(); // Ëæ»úÉú³ÉÆ÷
