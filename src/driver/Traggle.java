@@ -78,6 +78,7 @@ public class Traggle extends Configured implements Tool {
 	public static class Reduce extends Reducer<Text, Text, Text, Text> {
 		public void reduce(Text key, Iterable<Text> values,Context context)
 				throws IOException, InterruptedException {
+			context.write(new Text("T adn Decrease"),new Text(context.getConfiguration().get("paramAnnel")));
 			context.write(new Text("100 times" + key), new Text());
 			if (key.equals(new Text("table"))) {
 				for (Text val : values) {
