@@ -48,10 +48,7 @@ public class Traggle extends Configured implements Tool {
 	public static class Map extends
 			Mapper<LongWritable, LongWritable, Text, Text> {
 
-		protected void map(
-				LongWritable key,
-				LongWritable value,
-				Context context)
+		protected void map(LongWritable key, LongWritable value, Context context)
 				throws java.io.IOException, InterruptedException {
 			String line = context.getConfiguration().get("paramAnnel")
 					.toString();
@@ -62,23 +59,22 @@ public class Traggle extends Configured implements Tool {
 			t.process();
 			context.write(new Text("time"), new Text(t.time + ""));
 			context.write(new Text("length"), new Text(t.rsTable.length + ""));
-			String RTable=new String();
-			for(int i=0;i<t.rsTable.length;i++)
-			{
-				for(int j=0;j<t.rsTable[i].length;j++)
-				{
-					RTable+=t.rsTable[i][j]+"\t";
+			String RTable = new String();
+			for (int i = 0; i < t.rsTable.length; i++) {
+				for (int j = 0; j < t.rsTable[i].length; j++) {
+					RTable += t.rsTable[i][j] + "\t";
 				}
-				RTable+="\r\n";
+				RTable += "\r\n";
 			}
 			context.write(new Text("table"), new Text(RTable));
 		}
 	}
 
 	public static class Reduce extends Reducer<Text, Text, Text, Text> {
-		public void reduce(Text key, Iterable<Text> values,Context context)
+		public void reduce(Text key, Iterable<Text> values, Context context)
 				throws IOException, InterruptedException {
-			context.write(new Text("T adn Decrease"),new Text(context.getConfiguration().get("paramAnnel")));
+			context.write(new Text("T adn Decrease"), new Text(context
+					.getConfiguration().get("paramAnnel")));
 			context.write(new Text("100 times" + key), new Text());
 			if (key.equals(new Text("table"))) {
 				for (Text val : values) {
@@ -140,11 +136,11 @@ public class Traggle extends Configured implements Tool {
 				Configuration conf = new Configuration();
 				conf.setInt("step", i);
 				conf.set("paramAnnel", temperture[i] + " " + decrease[j]);
-				Job job = new Job(conf, "myWork" + i+"_"+j);
+				Job job = new Job(conf, "myWork" + i + "_" + j);
 				configMyWork(job);
 				FileInputFormat.setInputPaths(job, new Path(TMP_DIR, args[0]));
 				FileOutputFormat.setOutputPath(job, new Path(TMP_DIR, args[1]
-						+ "" + i+"_"+j));
+						+ "" + i + "_" + j));
 				initInput(job);
 				job.waitForCompletion(true);
 			}
