@@ -1,6 +1,7 @@
 package driver;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.Random;
 import java.util.StringTokenizer;
 
@@ -25,16 +26,13 @@ import org.apache.hadoop.util.ToolRunner;
 import simulating.DataCenter;
 import simulating.Process;
 
-/**
- * 每一组参数运行100遍
- * */
 public class Traggle extends Configured implements Tool {
 	private int tasks = 1;
-	static public int numMaps = 5;
-	static public final int turns = 5;
+	static public int numMaps = 2;
+	static public final int turns = 2;
 	static public double[] temperture = new double[turns];
 	static public double[] decrease = new double[turns];
-	static private Random randomGenerator = new Random(); // 随机生成器
+	static private Random randomGenerator = new Random(); // 锟斤拷锟斤拷锟斤拷锟斤拷
 	static private final Path TMP_DIR = new Path("myAnnelDir");
 
 	private static void initParameter() {
@@ -47,9 +45,14 @@ public class Traggle extends Configured implements Tool {
 
 	public static class Map extends
 			Mapper<LongWritable, LongWritable, Text, Text> {
+		int param[] = { 5, 5, 5, 5 ,5 ,5 };
 
 		protected void map(LongWritable key, LongWritable value, Context context)
 				throws java.io.IOException, InterruptedException {
+			if (DataCenter.degree < 0) {
+				DataCenter.init(param, 3);
+				initParameter();
+			}
 			String line = context.getConfiguration().get("paramAnnel")
 					.toString();
 			StringTokenizer itr = new StringTokenizer(line);
@@ -131,27 +134,30 @@ public class Traggle extends Configured implements Tool {
 	@Override
 	public int run(String[] args) throws Exception {
 		// TODO Auto-generated method stub
+		long starttime=new Date().getTime();
 		for (int i = 0; i < turns; i++) {
 			for (int j = 0; j < turns; j++) {
+
 				Configuration conf = new Configuration();
-				conf.setInt("step", i);
 				conf.set("paramAnnel", temperture[i] + " " + decrease[j]);
 				Job job = new Job(conf, "myWork" + i + "_" + j);
+				job.setJarByClass(Traggle.class);
 				configMyWork(job);
 				FileInputFormat.setInputPaths(job, new Path(TMP_DIR, args[0]));
 				FileOutputFormat.setOutputPath(job, new Path(TMP_DIR, args[1]
 						+ "" + i + "_" + j));
 				initInput(job);
 				job.waitForCompletion(true);
+
 			}
 		}
+		long endtime=new Date().getTime();
+		System.out.println("all need time:"+(endtime-starttime));
 		return 0;
 	}
 
 	public static void main(String[] args) throws Exception {
-		int param[] = { 5, 5, 5, 5 };
-		DataCenter.init(param, 2);
-		initParameter();
+
 		args = new String[] { "test-in", "test-out" };
 		System.exit(ToolRunner.run(null, new Traggle(), args));
 	}

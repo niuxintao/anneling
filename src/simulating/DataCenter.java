@@ -3,7 +3,7 @@ package simulating;
 public class DataCenter {
 	// static public int N; //表的大小
 	static public int[] param; // 表的配置
-	static public int degree; // 维度
+	static public int degree = -1; // 维度
 	static public int maxFreeing;// 最大僵住值
 	static public int coveringArrayNum;// 这里有一个coveringArray的大小
 	static public int[] index;// 索引
